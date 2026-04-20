@@ -1,30 +1,60 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pin Saver - High Quality</title>
+    <title>Pinterest Downloader Pro</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121212; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .container { background: #1e1e1e; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; width: 90%; max-width: 400px; }
-        h1 { color: #E60023; margin-bottom: 20px; }
-        input { width: 100%; padding: 12px; border-radius: 8px; border: none; margin-bottom: 15px; box-sizing: border-box; background: #333; color: white; }
-        button { width: 100%; padding: 12px; border-radius: 8px; border: none; background: #E60023; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:hover { background: #b8001c; }
-        #loader { display: none; margin-top: 15px; border: 4px solid #f3f3f3; border-top: 4px solid #E60023; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin-left: auto; margin-right: auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        #result { margin-top: 20px; }
-        .download-btn { background: #008100; text-decoration: none; display: inline-block; margin-top: 10px; width: 100%; box-sizing: border-box; padding: 12px; border-radius: 8px; color: white; font-weight: bold; }
+        body { font-family: 'Segoe UI', sans-serif; background: #111; color: white; text-align: center; padding: 20px; }
+        .box { background: #222; padding: 20px; border-radius: 15px; max-width: 400px; margin: auto; box-shadow: 0 0 20px rgba(230, 0, 35, 0.2); }
+        input { width: 90%; padding: 12px; margin: 10px 0; border-radius: 5px; border: none; }
+        button { background: #E60023; color: white; padding: 12px 25px; border: none; border-radius: 5px; cursor: pointer; width: 90%; font-weight: bold; }
+        #status { margin-top: 15px; font-size: 14px; }
+        .download-link { display: none; margin-top: 20px; background: #28a745; color: white; padding: 10px; text-decoration: none; border-radius: 5px; display: block; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Pinterest Save</h1>
-        <input type="text" id="pinLink" placeholder="Paste Pinterest link here...">
-        <button onclick="getMedia()">Fetch Media</button>
-        <div id="loader"></div>
+    <div class="box">
+        <h2 style="color: #E60023;">Pin Downloader</h2>
+        <input type="text" id="urlInput" placeholder="Paste Pinterest Link Here">
+        <button onclick="startDownload()">Download Now</button>
+        <div id="status"></div>
         <div id="result"></div>
     </div>
-    <script src="script.js"></script>
+
+    <script>
+        async function startDownload() {
+            const url = document.getElementById('urlInput').value;
+            const status = document.getElementById('status');
+            const result = document.getElementById('result');
+            
+            if(!url) { alert("Link dalo bhai!"); return; }
+
+            status.innerHTML = "🔄 Processing... Wait 5-10 seconds";
+            result.innerHTML = "";
+
+            try {
+                // Ye ek open-source serverless function hai jo Pinterest link extract karta hai
+                const apiUrl = `https://api.boxentriq.com/social/pinterest-video-downloader?url=${encodeURIComponent(url)}`;
+                
+                // Hum yahan ek PROXY use kar rahe hain taaki block na ho
+                const proxyUrl = "https://api.allorigins.win/get?url=" + encodeURIComponent(apiUrl);
+                
+                const response = await fetch(proxyUrl);
+                const data = await response.json();
+                const finalData = JSON.parse(data.contents);
+
+                if (finalData && (finalData.url || finalData.video_url)) {
+                    const downloadUrl = finalData.video_url || finalData.url;
+                    status.innerHTML = "✅ Media Found!";
+                    result.innerHTML = `<a href="${downloadUrl}" target="_blank" class="download-link">Click here to Download / Save</a>`;
+                } else {
+                    status.innerHTML = "❌ Failed. Yeh link support nahi kar raha.";
+                }
+            } catch (e) {
+                status.innerHTML = "⚠️ Server Busy. Try again after 1 minute.";
+            }
+        }
+    </script>
 </body>
 </html>
